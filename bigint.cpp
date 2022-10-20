@@ -185,6 +185,27 @@ Decimal Decimal::operator-() const {
     ret.Negative = !ret.Negative;
     return ret;
 }
+std::string Decimal::getAsString() const {
+    return this->Value;
+}
+
+std::ostream& operator<< (std::ostream &out, Decimal const& value) {
+    if(value.Negative && value.Value != "0")
+        out << '-';
+    out << value.Value;
+    return out;
+}
+
+bool Decimal::operator>= (const Decimal& right) const {
+    if (right.Value.size() == this->Value.size()) {
+        for (int i = 0; i < this->Value.size(); i++)
+            if (right.Value[i] != this->Value[i])
+                return right.Value[i] < this->Value[i];
+        return true;
+    } else {
+        return right.Value.size() < this->Value.size();
+    }
+}
 
 bool Decimal::operator<= (const Decimal& right) const {
     if (this->Value.size() == right.Value.size()) {
@@ -208,13 +229,24 @@ bool Decimal::operator== (const Decimal& right) const {
     }
 }
 
-std::string Decimal::getAsString() const {
-    return this->Value;
+bool Decimal::operator> (const Decimal& right) const {
+    if (right.Value.size() == this->Value.size()) {
+        for (int i = 0; i < this->Value.size(); i++)
+            if (right.Value[i] != this->Value[i])
+                return right.Value[i] < this->Value[i];
+        return false;
+    } else {
+        return right.Value.size() < this->Value.size();
+    }
 }
 
-std::ostream& operator<< (std::ostream &out, Decimal const& value) {
-    if(value.Negative && value.Value != "0")
-        out << '-';
-    out << value.Value;
-    return out;
+bool Decimal::operator<(const Decimal &right) const {
+    if (this->Value.size() == right.Value.size()) {
+        for (int i = 0; i < right.Value.size(); i++)
+            if (this->Value[i] != right.Value[i])
+                return this->Value[i] < right.Value[i];
+        return false;
+    } else {
+        return this->Value.size() < right.Value.size();
+    }
 }
