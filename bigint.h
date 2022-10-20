@@ -6,39 +6,46 @@ class Decimal {
     bool Negative = false;
 
     std::string Value = "";
+private:
+
+    void removeZero();
 
 public:
 
     Decimal();
 
-    Decimal(int);
+    explicit Decimal(int);
 
-    Decimal(long);
+    explicit Decimal(long);
 
-    Decimal(Decimal&);
+    Decimal(const Decimal&);
 
-    Decimal(std::string);
+    explicit Decimal(const std::string);
 
-    Decimal(char*);
+    explicit Decimal(const char* const);
 
-    Decimal& operator+ (Decimal&);
+    std::string getAsString() const;
 
-    Decimal& operator- (Decimal);
+    Decimal operator+ (const Decimal&) const;
 
-    void operator- ();
+    Decimal operator- (const Decimal&) const;
 
-    Decimal& operator/ (Decimal);
+    Decimal operator- () const;
 
-    Decimal& operator* (Decimal);
+    Decimal operator/ (const Decimal) const;
 
-    bool operator< (Decimal&);
+    Decimal operator* (const Decimal) const;
 
-    bool operator== (Decimal);
+    bool operator< (const Decimal&) const;
 
-    bool operator> (Decimal&);
+    bool operator== (const Decimal&) const;
 
-    bool operator<= (Decimal&);
+    bool operator> (const Decimal&) const;
 
-    bool operator>= (Decimal&);
+    bool operator<= (const Decimal&) const;
+
+    bool operator>= (const Decimal&) const;
+
+    friend std::ostream& operator<< (std::ostream &out, const Decimal &point);
 
 };
