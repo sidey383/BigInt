@@ -24,21 +24,23 @@ public:
 
     explicit Decimal(const char* const);
 
-    std::string getAsString() const;
-
     Decimal operator+ (const Decimal&) const;
+
+    Decimal operator+= (const Decimal&);
 
     Decimal operator- (const Decimal&) const;
 
     Decimal operator- () const;
 
-    Decimal operator/ (const Decimal) const;
+    Decimal operator/ (const Decimal&) const;
 
-    Decimal operator* (const Decimal) const;
+    Decimal operator* (const Decimal&) const;
 
     bool operator< (const Decimal&) const;
 
     bool operator== (const Decimal&) const;
+
+    bool operator!= (const Decimal&) const;
 
     bool operator> (const Decimal&) const;
 
@@ -46,6 +48,7 @@ public:
 
     bool operator>= (const Decimal&) const;
 
-    friend std::ostream& operator<< (std::ostream &out, const Decimal &point);
+    friend std::ostream& operator<< (std::ostream&, Decimal const&);
 
+    friend Decimal average(const Decimal&, const Decimal&);
 };

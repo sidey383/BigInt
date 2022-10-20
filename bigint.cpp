@@ -1,6 +1,5 @@
 #include <stdexcept>
 #include <iostream>
-#include <string.h>
 #include "bigint.h"
 
 void Decimal::removeZero() {
@@ -20,7 +19,10 @@ Decimal::Decimal() {
 }
 
 Decimal::Decimal(int a){
-    Negative = a < 0;
+    if(a < 0) {
+        Negative = true;
+        a = -a;
+    }
     do {
         int c = a%10;
         this->Value = (char)(c +'0') + this->Value;
@@ -29,7 +31,10 @@ Decimal::Decimal(int a){
 }
 
 Decimal::Decimal(long a){
-    Negative = a < 0;
+    if(a < 0) {
+        Negative = true;
+        a = -a;
+    }
     do {
         int c = a%10;
         this->Value = (char)(c +'0') + this->Value;
@@ -43,7 +48,7 @@ Decimal::Decimal(const Decimal &decimal) {
 }
 
 Decimal::Decimal(std::string str) {
-    int size = str.size();
+    size_t size = str.size();
     char first = str[0];
     int hasFirst = 0;
     if (first == '-') {
@@ -65,7 +70,7 @@ Decimal::Decimal(std::string str) {
 }
 
 Decimal::Decimal(const char* const str) {
-    int size = strlen(str);
+    size_t size = strlen(str);
     char first = str[0];
     int hasFirst = 0;
     if (first == '-') {
@@ -101,7 +106,7 @@ Decimal Decimal::operator+ (const Decimal& val) const {
             }
             if(i <= dec.Value.size()) {
                 result += dec.Value[dec.Value.size() - i] - '0';
-                dec.Value[dec.Value.size() - i] = '0' + (result%10);
+                dec.Value[dec.Value.size() - i] = (char)('0' + (result%10));
                 remains = result/10;
             } else {
                 dec.Value = (char)('0' + (result%10)) + dec.Value;
@@ -121,7 +126,7 @@ Decimal Decimal::operator+ (const Decimal& val) const {
             }
             if(i <= dec.Value.size()) {
                 result += dec.Value[dec.Value.size() - i] - '0';
-                dec.Value[dec.Value.size() - i] = '0' + (result%10);
+                dec.Value[dec.Value.size() - i] = (char)('0' + (result%10));
                 remains = result/10;
             } else {
                 dec.Value = (char)('0' + (result%10)) + dec.Value;
@@ -131,6 +136,13 @@ Decimal Decimal::operator+ (const Decimal& val) const {
         }
         return dec;
     }
+}
+
+Decimal Decimal::operator+= (const Decimal& val) {
+    Decimal dec = *this + val;
+    this->Value = dec.Value;
+    this->Negative = dec.Negative;
+    return *this;
 }
 
 Decimal Decimal::operator- (const Decimal& val) const {
@@ -180,13 +192,74 @@ Decimal Decimal::operator- (const Decimal& val) const {
     }
 }
 
+Decimal Decimal::operator* (const Decimal& multiplier) const {
+    Decimal result;
+
+    for(int i = 0; i < this->Value.size(); i++) {
+        for(int j = 0; j < multiplier.Value.size(); j++) {
+            Decimal val = Decimal((multiplier.Value[j] - '0') * (this->Value[i] - '0'));
+            val.Value = val.Value + std::string(this->Value.size() - i + multiplier.Value.size() - j - 2, '0');
+            result = result + val;
+        }
+    }
+
+    result.Negative = this->Negative ^ multiplier.Negative;
+    result.removeZero();
+    return result;
+}
+
+Decimal average(const Decimal& val1, const Decimal& val2) {
+    Decimal result;
+    size_t size1 = val1.Value.size();
+    size_t size2 = val2.Value.size();
+    size_t max = size1 < size2 ? size2 : size1;
+    for(size_t i = 1; i <= max; i++) {
+        int sum = 0;
+        if(i <= size1)
+            sum += val1.Value[size1 - i] - '0';
+        if(i <= size2)
+            sum += val2.Value[size2 - i] - '0';
+        result += Decimal((char)(sum/2 + '0') + std::string(i-1, '0'));
+        if(sum % 2 != 0 && i > 1) {
+            result += Decimal((char)('5') + std::string(i-2, '0'));
+        }
+    }
+    return result;
+}
+
+Decimal Decimal::operator/ (const Decimal& divider) const {
+    if(divider == Decimal())
+        exit((int)0xc0000094);
+    if(*this<divider)
+        return Decimal();
+    if(*this == divider) {
+        return Decimal(1);
+    }
+    bool negative = this->Negative ^ divider.Negative;
+    int a = this->Value.size() - divider.Value.size();
+    Decimal min = Decimal('1' + std::string(a == 0 ? 0 : a - 1, '0'));
+    Decimal max = Decimal('1' + std::string(a == 0 ? 1 : a + 1, '0'));
+    while(max - min != Decimal(1)) {
+        Decimal averageV = average(max, min);;
+        Decimal calcResult = averageV * divider;
+        if(calcResult == *this) {
+            averageV.Negative = negative;
+            return averageV;
+        }
+        if(calcResult > *this) {
+            max = averageV;
+        } else {
+            min = averageV;
+        }
+    }
+    min.Negative = negative;
+    return min;
+}
+
 Decimal Decimal::operator-() const {
     Decimal ret(*this);
     ret.Negative = !ret.Negative;
     return ret;
-}
-std::string Decimal::getAsString() const {
-    return this->Value;
 }
 
 std::ostream& operator<< (std::ostream &out, Decimal const& value) {
@@ -228,6 +301,11 @@ bool Decimal::operator== (const Decimal& right) const {
         return false;
     }
 }
+
+bool Decimal::operator!= (const Decimal& right) const {
+    return !(*this == right);
+}
+
 
 bool Decimal::operator> (const Decimal& right) const {
     if (right.Value.size() == this->Value.size()) {
